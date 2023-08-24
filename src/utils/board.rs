@@ -18,7 +18,7 @@ pub fn print_board(board: Vec<Vec<char>>){
     let y_lenght = board[0].len();
 
     let mut builder = Builder::default();
-    
+
     for i in 0..x_length {
         let mut row: Vec<char> = Vec::new();
         for j in 0..y_lenght{
