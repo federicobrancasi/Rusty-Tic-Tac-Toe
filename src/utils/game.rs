@@ -24,7 +24,7 @@ pub fn check_winner(board: Vec<Vec<char>>) -> char {
     return ' ';
 }
 
-fn is_win(board: Vec<Vec<char>>, player_char: char) -> bool {
+pub fn is_win(board: Vec<Vec<char>>, player_char: char) -> bool {
     let x_length = board.len();
 
     for i in 0..x_length {
