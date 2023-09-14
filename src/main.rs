@@ -6,32 +6,73 @@ use utils::player::*;
 fn main() {
     const TOTAL_ROWS: usize = 3;
     const TOTAL_COLUMNS: usize = 3;
+    const MAX_FILL: usize = TOTAL_ROWS * TOTAL_COLUMNS;
+    let mut board = create_board(TOTAL_ROWS, TOTAL_COLUMNS);
 
     clearscreen();
+    println!("[*] WELCOME TO TICTACTOE GAME [*]");
+    let human_char = ask_player_char();
+    let ai_char = if human_char == 'X' { 'O' } else { 'X' };
+    let mut filled_box_count = 0;
+    let mut winner = ' ';
+    let mut ai_last_move = 0;
 
-    let mut board = create_board(TOTAL_ROWS, TOTAL_COLUMNS);
-    let human_char = 'X';
-    let ai_char = 'O';
-
-    fill_box(&mut board, 0, 0, human_char);
-    fill_box(&mut board, 1, 1, ai_char);
-    fill_box(&mut board, 0, 1, human_char);
-    fill_box(&mut board, 0, 2, ai_char);
-    fill_box(&mut board, 1, 0, human_char);
-
-    print_board(board.clone());
-
-    let best_move_arr = ai_best_move(&mut board, ai_char, human_char);
-    let best_move_num = move_array_to_num(best_move_arr, TOTAL_ROWS);
-
-    println!("AI's best move is {}", best_move_num);
-
-    fill_box(&mut board, best_move_arr[0], best_move_arr[1], ai_char);
-    print_board(board.clone());
-
-    if is_win(board, ai_char) {
-        println!("{} Win!", ai_char);
+    while filled_box_count < MAX_FILL {
+        if ai_char == 'X' {
+            clearscreen();
+            let ai_move = ai_best_move(&mut board, ai_char, human_char);
+            fill_box(&mut board, ai_move[0], ai_move[1], ai_char);
+            filled_box_count += 1;
+            print_board(board.clone());
+            println!(
+                "[+] AI move : X -> {}",
+                move_array_to_num(ai_move, TOTAL_ROWS)
+                );
+            if is_win(board.clone(), ai_char) {
+                winner = ai_char;
+                break;
+            }
+            let human_move = ask_player_move(board.clone(), human_char);
+            fill_box(&mut board, human_move[0], human_move[1], human_char);
+            filled_box_count += 1;
+            if is_win(board.clone(), human_char) {
+                winner = human_char;
+                break;
+            }
+        } else {
+            clearscreen();
+            print_board(board.clone());
+            if ai_last_move == 0 {
+                println!("[*] AI is waiting your move...");
+            } else {
+                println!("[+] AI move: O -> {}", ai_last_move);
+            }
+            let human_move = ask_player_move(board.clone(), human_char);
+            fill_box(&mut board, human_move[0], human_move[1], human_char);
+            filled_box_count += 1;
+            if is_win(board.clone(), human_char) {
+                winner = human_char;
+                break;
+            }
+            let ai_move = ai_best_move(&mut board, ai_char, human_char);
+            fill_box(&mut board, ai_move[0], ai_move[1], ai_char);
+            filled_box_count += 1;
+            if is_win(board.clone(), ai_char) {
+                winner = ai_char;
+                break;
+            }
+            ai_last_move = move_array_to_num(ai_move, TOTAL_ROWS);
+        }
     }
+    clearscreen();
+    if winner == human_char {
+        println!("[*] YOU ({}) WIN [*]", human_char);
+    } else if winner == ai_char {
+        println!("[*] YOU ({}) LOSE! [*]", human_char);
+    } else {
+        println!("[*] DRAW! [*]");
+    }
+    print_board(board.clone());
 }
 
 pub fn minmax(board: &mut Vec<Vec<char>>,
@@ -99,7 +140,6 @@ pub fn ai_best_move(board: &mut Vec<Vec<char>>, ai_char: char, human_char: char)
                 board[i][j] = ai_char;
                 let score = minmax(board, false, 1, ai_char, human_char);
                 board[i][j] = ' ';
-                let move_num = move_array_to_num([i, j], x_length);
                 if score > best_score {
                     best_score = score;
                     best_move =  [i, j];
